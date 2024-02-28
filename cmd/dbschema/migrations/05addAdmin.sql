@@ -1,0 +1,10 @@
+-- +migrate Up
+ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN password TEXT DEFAULT NULL;
+ALTER TABLE users ADD COLUMN chat_id NUMERIC DEFAULT NULL;
+
+-- +migrate Down
+ALTER TABLE users DROP COLUMN is_admin;
+ALTER TABLE users DROP COLUMN password;
+ALTER TABLE users DROP COLUMN chat_id;
+

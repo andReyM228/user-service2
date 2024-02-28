@@ -1,0 +1,21 @@
+@startuml
+
+actor User
+
+User -> Telegram_bot : Sends a message
+
+Telegram_bot -> User : Sends a reply message
+
+User -> Telegram_bot : Sends user information
+
+Telegram_bot -> User_service : Sends user information
+
+User_service -> Tx_service : Initiates a transaction
+
+Tx_service -> User_service : Returns transaction status
+
+User_service -> Telegram_bot : Sends a transaction update
+
+Telegram_bot -> User : Sends a transaction update
+
+@enduml
