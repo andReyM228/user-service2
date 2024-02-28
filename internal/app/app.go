@@ -8,6 +8,7 @@ import (
 	"github.com/andReyM228/lib/database"
 	"github.com/andReyM228/lib/rabbit"
 	"github.com/andReyM228/one/chain_client"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 
@@ -15,12 +16,12 @@ import (
 	car_trading_handler "user_service/internal/handler/car_trading"
 	cars_handler "user_service/internal/handler/cars"
 	users_handler "user_service/internal/handler/users"
-	"user_service/internal/repository/cars"
-	"user_service/internal/repository/transfers"
-	"user_service/internal/repository/user_cars"
-	"user_service/internal/repository/users"
-	"user_service/internal/service/car_trading"
-	users_service "user_service/internal/service/users"
+	"user_service/internal/repositories/cars"
+	"user_service/internal/repositories/transfers"
+	"user_service/internal/repositories/user_cars"
+	"user_service/internal/repositories/users"
+	"user_service/internal/services/car_trading"
+	users_service "user_service/internal/services/users"
 
 	"github.com/andReyM228/lib/log"
 	_ "github.com/gofiber/fiber/v2"
@@ -39,6 +40,7 @@ type App struct {
 	userCarsRepo      user_cars.Repository
 	transferRepo      transfers.Repository
 	carTradingHandler car_trading_handler.Handler
+	validator         *validator.Validate
 	logger            log.Logger
 	db                *sqlx.DB
 	clientHTTP        *http.Client
@@ -71,21 +73,21 @@ func (a *App) Run(fs embed.FS) {
 func (a *App) initHTTP() {
 	a.router = fiber.New()
 
-	a.router.Post("v1/user-service/buy-car/:chat_id/:car_id/:tx_hash", a.carTradingHandler.BuyCar)
-	a.router.Post("v1/user-service/sell-car/:chat_id/:car_id", a.carTradingHandler.SellCar)
+	a.router.Post("v1/user-services/buy-car/:chat_id/:car_id/:tx_hash", a.carTradingHandler.BuyCar)
+	a.router.Post("v1/user-services/sell-car/:chat_id/:car_id", a.carTradingHandler.SellCar)
 
-	a.router.Get("v1/user-service/user/:id", a.userHandler.Get)
-	a.router.Post("v1/user-service/user", a.userHandler.Create)
-	a.router.Post("v1/user-service/user/login", a.userHandler.Login)
-	a.router.Put("v1/user-service/user", a.userHandler.Update)
-	a.router.Delete("v1/user-service/user/:id", a.userHandler.Delete)
+	a.router.Get("v1/user-services/user/:id", a.userHandler.Get)
+	a.router.Post("v1/user-services/user", a.userHandler.Create)
+	a.router.Post("v1/user-services/user/login", a.userHandler.Login)
+	a.router.Put("v1/user-services/user", a.userHandler.Update)
+	a.router.Delete("v1/user-services/user/:id", a.userHandler.Delete)
 
-	a.router.Get("v1/user-service/car/:id", a.carHandler.Get)
-	a.router.Get("v1/user-service/cars/:label", a.carHandler.GetAll)
-	a.router.Get("v1/user-service/user-cars", a.carHandler.GetUserCars)
-	a.router.Post("v1/user-service/car", a.carHandler.Create)
-	a.router.Put("v1/user-service/car", a.carHandler.Update)
-	a.router.Delete("v1/user-service/car/:id", a.carHandler.Delete)
+	a.router.Get("v1/user-services/car/:id", a.carHandler.Get)
+	a.router.Get("v1/user-services/cars/:label", a.carHandler.GetAll)
+	a.router.Get("v1/user-services/user-cars", a.carHandler.GetUserCars)
+	a.router.Post("v1/user-services/car", a.carHandler.Create)
+	a.router.Put("v1/user-services/car", a.carHandler.Update)
+	a.router.Delete("v1/user-services/car/:id", a.carHandler.Delete)
 
 	a.logger.Debug("fiber api started")
 	_ = a.router.Listen(fmt.Sprintf(":%d", a.config.HTTP.Port))
@@ -142,7 +144,6 @@ func (a *App) initHandlers() {
 	a.logger.Debug("handlers created")
 }
 
-// TODO: переделать через интерфейсы (как в tx-service)
 func (a *App) initServices() {
 	a.carTradingService = car_trading.NewService(a.userRepo, a.carRepo, a.userCarsRepo, a.transferRepo, a.chain, a.config.Extra.CarSystemWallet, a.logger)
 	a.userService = users_service.NewService(a.userRepo, a.logger)
@@ -154,6 +155,11 @@ func (a *App) populateConfig() {
 	cfg, err := config.ParseConfig()
 	if err != nil {
 		log.Init().Fatal(err.Error())
+	}
+
+	err = cfg.ValidateConfig(a.validator)
+	if err != nil {
+		a.logger.Debugf("populateConfig: %s", err)
 	}
 
 	a.config = cfg

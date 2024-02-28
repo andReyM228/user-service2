@@ -4,27 +4,26 @@ import (
 	"encoding/json"
 	"github.com/andReyM228/lib/bus"
 	"github.com/andReyM228/lib/rabbit"
-
-	"user_service/internal/domain"
-	"user_service/internal/repository/cars"
-	"user_service/internal/service/car_trading"
+	"user_service/internal/repositories"
+	"user_service/internal/services"
 
 	"github.com/andReyM228/lib/auth"
 	"github.com/andReyM228/lib/errs"
 	"github.com/andReyM228/lib/responder"
 	"github.com/gofiber/fiber/v2"
+	"user_service/internal/domain"
 )
 
 type Handler struct {
-	carRepo    cars.Repository
-	carService car_trading.Service
+	carRepo    repositories.Cars
+	carService services.CarTrading
 	rabbit     rabbit.Rabbit
 }
 
-func NewHandler(repo cars.Repository, service car_trading.Service, rabbit rabbit.Rabbit) Handler {
+func NewHandler(carRepo repositories.Cars, carService services.CarTrading, rabbit rabbit.Rabbit) Handler {
 	return Handler{
-		carRepo:    repo,
-		carService: service,
+		carRepo:    carRepo,
+		carService: carService,
 		rabbit:     rabbit,
 	}
 }

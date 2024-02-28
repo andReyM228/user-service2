@@ -9,27 +9,25 @@ import (
 	"os"
 )
 
-// TODO: добавить валидацию конфига
-
 type (
 	Config struct {
 		Chain  chain_client.ClientConfig `yaml:"chain"`
-		DB     database.DBConfig         `yaml:"db"`
-		HTTP   HTTP                      `yaml:"http"`
-		Rabbit Rabbit                    `yaml:"rabbit"`
-		Extra  Extra                     `yaml:"extra"`
+		DB     database.DBConfig         `yaml:"db" validate:"required"`
+		HTTP   HTTP                      `yaml:"http" validate:"required"`
+		Rabbit Rabbit                    `yaml:"rabbit" validate:"required"`
+		Extra  Extra                     `yaml:"extra" validate:"required"`
 	}
 
 	HTTP struct {
-		Port int `yaml:"port"`
+		Port int `yaml:"port" validate:"required"`
 	}
 
 	Rabbit struct {
-		Url string `yaml:"url"`
+		Url string `yaml:"url" validate:"required"`
 	}
 
 	Extra struct {
-		CarSystemWallet string `yaml:"car-system-wallet"`
+		CarSystemWallet string `yaml:"car-system-wallet" validate:"required"`
 	}
 )
 

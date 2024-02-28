@@ -12,6 +12,8 @@ require (
 	github.com/andReyM228/lib/log v0.0.0-20230818160527-f03712b84ef2
 	github.com/andReyM228/lib/rabbit v1.0.16
 	github.com/andReyM228/lib/responder v0.0.0-20230807185826-49977c79c61d
+	github.com/andReyM228/one/chain_client v1.0.7
+	github.com/cosmos/cosmos-sdk v0.47.3
 	github.com/gofiber/fiber/v2 v2.46.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
@@ -30,7 +32,6 @@ require (
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/andReyM228/one v1.0.0 // indirect
-	github.com/andReyM228/one/chain_client v1.0.7 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -46,7 +47,6 @@ require (
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2 // indirect
-	github.com/cosmos/cosmos-sdk v0.47.3 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogoproto v1.4.10 // indirect
 	github.com/cosmos/iavl v0.20.0 // indirect

@@ -8,20 +8,20 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"user_service/internal/domain"
 	"user_service/internal/domain/errs"
-	"user_service/internal/repository/users"
-	users_service "user_service/internal/service/users"
+	"user_service/internal/repositories"
+	"user_service/internal/services"
 )
 
 type Handler struct {
-	userRepo    users.Repository
-	userService users_service.Service
+	userRepo    repositories.Users
+	userService services.User
 	rabbit      rabbit.Rabbit
 }
 
-func NewHandler(repo users.Repository, service users_service.Service, rabbit rabbit.Rabbit) Handler {
+func NewHandler(userRepo repositories.Users, userService services.User, rabbit rabbit.Rabbit) Handler {
 	return Handler{
-		userRepo:    repo,
-		userService: service,
+		userRepo:    userRepo,
+		userService: userService,
 		rabbit:      rabbit,
 	}
 }

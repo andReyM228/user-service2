@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/andReyM228/lib/bus"
 	"github.com/andReyM228/lib/rabbit"
-	"user_service/internal/repository"
+	"user_service/internal/repositories"
 
 	"github.com/andReyM228/lib/log"
 )
@@ -32,13 +32,13 @@ func (r Repository) Issue(ToAddress, Memo string, Amount int64) (string, error) 
 	}
 
 	if result.StatusCode != 200 {
-		return "", repository.InternalServerError{}
+		return "", repositories.InternalServerError{}
 	}
 
 	var txResp bus.TxResponse
 
 	if err := json.Unmarshal(result.Payload, &txResp); err != nil {
-		return "", repository.InternalServerError{}
+		return "", repositories.InternalServerError{}
 	}
 
 	return txResp.TxHash, nil
@@ -55,13 +55,13 @@ func (r Repository) Withdraw(ToAddress, Memo string, Amount int64) (string, erro
 	}
 
 	if result.StatusCode != 200 {
-		return "", repository.InternalServerError{}
+		return "", repositories.InternalServerError{}
 	}
 
 	var txResp bus.TxResponse
 
 	if err := json.Unmarshal(result.Payload, &txResp); err != nil {
-		return "", repository.InternalServerError{}
+		return "", repositories.InternalServerError{}
 	}
 
 	return txResp.TxHash, nil

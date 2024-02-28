@@ -2,17 +2,16 @@ package car_trading
 
 import (
 	"github.com/andReyM228/lib/errs"
-	"user_service/internal/service/car_trading"
-
 	"github.com/andReyM228/lib/responder"
 	"github.com/gofiber/fiber/v2"
+	"user_service/internal/services"
 )
 
 type Handler struct {
-	carTrading car_trading.Service
+	carTrading services.CarTrading
 }
 
-func NewHandler(carTrading car_trading.Service) Handler {
+func NewHandler(carTrading services.CarTrading) Handler {
 	return Handler{
 		carTrading: carTrading,
 	}
