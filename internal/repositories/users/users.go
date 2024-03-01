@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"user_service/internal/domain"
-	"user_service/internal/repositories"
+	"github.com/andReyM228/lib/errs"
 
 	"github.com/andReyM228/lib/log"
 	"github.com/jmoiron/sqlx"
+	"user_service/internal/domain"
 )
 
 type Repository struct {
@@ -24,8 +23,6 @@ func NewRepository(database *sqlx.DB, log log.Logger) Repository {
 	}
 }
 
-// TODO: обработка ошибок
-
 func (r Repository) Get(field string, value any) (domain.User, error) {
 	var user domain.User
 	var cars []domain.Car
@@ -33,11 +30,11 @@ func (r Repository) Get(field string, value any) (domain.User, error) {
 	if err := r.db.Get(&user, fmt.Sprintf("SELECT * FROM users WHERE %s = %v", field, value)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			r.log.Info(err.Error())
-			return domain.User{}, repositories.NotFound{NotFound: "user"}
+			return domain.User{}, errs.NotFoundError{What: "user"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.User{}, repositories.InternalServerError{}
+		return domain.User{}, errs.InternalError{Cause: err.Error()}
 	}
 
 	if err := r.db.Select(&cars, `
@@ -49,11 +46,11 @@ func (r Repository) Get(field string, value any) (domain.User, error) {
 		`, user.ID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			r.log.Info(err.Error())
-			return domain.User{}, repositories.NotFound{NotFound: "users cars"}
+			return domain.User{}, errs.NotFoundError{What: "cars"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.User{}, repositories.InternalServerError{}
+		return domain.User{}, errs.InternalError{Cause: err.Error()}
 	}
 
 	user.Cars = cars
@@ -64,7 +61,7 @@ func (r Repository) Update(user domain.User) error {
 	if _, err := r.db.Exec("UPDATE users SET name = $1, surname = $2, phone = $3, email = $4, password = $5, chat_id = $6, account_address = $7 WHERE id = $5",
 		user.Name, user.Surname, user.Phone, user.Email, user.ID, user.Password, user.ChatID, user.AccountAddress); err != nil {
 		r.log.Error(err.Error())
-		return repositories.InternalServerError{}
+		return errs.InternalError{Cause: err.Error()}
 	}
 
 	return nil
@@ -73,7 +70,7 @@ func (r Repository) Update(user domain.User) error {
 func (r Repository) Create(user domain.User) error {
 	if _, err := r.db.Exec("INSERT INTO users (name, surname, phone, email, password, chat_id, account_address) VALUES ($1, $2, $3, $4, $5, $6, $7)", user.Name, user.Surname, user.Phone, user.Email, user.Password, user.ChatID, user.AccountAddress); err != nil {
 		r.log.Error(err.Error())
-		return repositories.InternalServerError{}
+		return errs.InternalError{Cause: err.Error()}
 	}
 
 	return nil
@@ -82,7 +79,7 @@ func (r Repository) Create(user domain.User) error {
 func (r Repository) Delete(id int64) error {
 	if _, err := r.db.Exec("DELETE FROM users WHERE id = $1", id); err != nil {
 		r.log.Error(err.Error())
-		return repositories.InternalServerError{}
+		return errs.InternalError{Cause: err.Error()}
 	}
 
 	return nil

@@ -3,10 +3,9 @@ package transfers
 import (
 	"encoding/json"
 	"github.com/andReyM228/lib/bus"
-	"github.com/andReyM228/lib/rabbit"
-	"user_service/internal/repositories"
-
+	"github.com/andReyM228/lib/errs"
 	"github.com/andReyM228/lib/log"
+	"github.com/andReyM228/lib/rabbit"
 )
 
 type Repository struct {
@@ -28,17 +27,17 @@ func (r Repository) Issue(ToAddress, Memo string, Amount int64) (string, error) 
 		Memo:      Memo,
 	})
 	if err != nil {
-		return "", err
+		return "", errs.InternalError{Cause: err.Error()}
 	}
 
 	if result.StatusCode != 200 {
-		return "", repositories.InternalServerError{}
+		return "", err
 	}
 
 	var txResp bus.TxResponse
 
 	if err := json.Unmarshal(result.Payload, &txResp); err != nil {
-		return "", repositories.InternalServerError{}
+		return "", errs.InternalError{Cause: err.Error()}
 	}
 
 	return txResp.TxHash, nil
@@ -51,17 +50,17 @@ func (r Repository) Withdraw(ToAddress, Memo string, Amount int64) (string, erro
 		Memo:      Memo,
 	})
 	if err != nil {
-		return "", err
+		return "", errs.InternalError{Cause: err.Error()}
 	}
 
 	if result.StatusCode != 200 {
-		return "", repositories.InternalServerError{}
+		return "", err
 	}
 
 	var txResp bus.TxResponse
 
 	if err := json.Unmarshal(result.Payload, &txResp); err != nil {
-		return "", repositories.InternalServerError{}
+		return "", errs.InternalError{Cause: err.Error()}
 	}
 
 	return txResp.TxHash, nil

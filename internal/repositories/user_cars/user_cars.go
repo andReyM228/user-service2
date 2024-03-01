@@ -3,12 +3,11 @@ package user_cars
 import (
 	"database/sql"
 	"errors"
-
-	"user_service/internal/domain"
-	"user_service/internal/repositories"
+	"github.com/andReyM228/lib/errs"
 
 	"github.com/andReyM228/lib/log"
 	"github.com/jmoiron/sqlx"
+	"user_service/internal/domain"
 )
 
 type Repository struct {
@@ -26,7 +25,7 @@ func NewRepository(database *sqlx.DB, log log.Logger) Repository {
 func (r Repository) Create(userID, carID int) error {
 	if _, err := r.db.Exec("INSERT INTO user_cars (user_id, car_id) VALUES ($1, $2)", userID, carID); err != nil {
 		r.log.Error(err.Error())
-		return repositories.InternalServerError{}
+		return errs.InternalError{Cause: err.Error()}
 	}
 
 	return nil
@@ -35,7 +34,7 @@ func (r Repository) Create(userID, carID int) error {
 func (r Repository) Delete(userID, carID int) error {
 	if _, err := r.db.Exec("DELETE FROM user_cars WHERE user_id = $1 AND car_id = $2", userID, carID); err != nil {
 		r.log.Error(err.Error())
-		return repositories.InternalServerError{}
+		return errs.InternalError{Cause: err.Error()}
 	}
 
 	return nil
@@ -47,11 +46,11 @@ func (r Repository) GetUserCars(userID int64) (domain.UserCars, error) {
 	if err := r.db.Select(&userCars, "SELECT * FROM user_cars WHERE user_id = $1", userID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			r.log.Info(err.Error())
-			return domain.UserCars{}, repositories.NotFound{NotFound: "user_cars"}
+			return domain.UserCars{}, errs.NotFoundError{What: "user cars"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.UserCars{}, repositories.InternalServerError{}
+		return domain.UserCars{}, errs.InternalError{Cause: err.Error()}
 	}
 
 	return domain.UserCars{Cars: userCars}, nil

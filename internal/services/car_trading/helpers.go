@@ -21,10 +21,5 @@ func (s Service) getTx(ctx context.Context, txHash string) (*bankTypes.MsgSend, 
 
 	msgSend := msg.(*bankTypes.MsgSend)
 
-	//msg, ok := tx.GetTx().GetMsgs()[0].(*types.MsgSend)
-	//if !ok {
-	//	return nil, errs.BadRequestError{Cause: "invalid msg format"}
-	//}
-
 	return msgSend, nil
 }

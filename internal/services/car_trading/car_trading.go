@@ -10,8 +10,6 @@ import (
 	"user_service/internal/repositories"
 )
 
-const systemUser = 0
-
 type Service struct {
 	usersRepo       repositories.Users
 	carsRepo        repositories.Cars
@@ -133,18 +131,16 @@ func (s Service) SellCar(chatID, carID int64) error {
 	return nil
 }
 
-//TODO: обработка ошибок
-
 func (s Service) GetCar(id int64) (domain.Car, error) {
 	car, err := s.carsRepo.Get(id)
 	if err != nil {
 		if errors.As(err, &repositories.InternalServerError{}) {
 			s.log.Error(err.Error())
-			return domain.Car{}, errs.InternalError{}
+			return domain.Car{}, err
 		}
 		s.log.Debug(err.Error())
 
-		return domain.Car{}, errs.NotFoundError{What: err.Error()}
+		return domain.Car{}, err
 	}
 
 	return car, nil
@@ -153,30 +149,28 @@ func (s Service) GetCar(id int64) (domain.Car, error) {
 func (s Service) GetCars(label string) (domain.Cars, error) {
 	cars, err := s.carsRepo.GetAll(label)
 	if err != nil {
-		if errors.As(err, &repositories.InternalServerError{}) {
+		if errors.As(err, &errs.InternalError{}) {
 			s.log.Error(err.Error())
-			return domain.Cars{}, errs.InternalError{}
+			return domain.Cars{}, err
 		}
 		s.log.Debug(err.Error())
 
-		return domain.Cars{}, errs.NotFoundError{What: err.Error()}
+		return domain.Cars{}, err
 	}
 
 	return cars, nil
 }
 
-// TODO: вынести field "chat_id" в domain
-
 func (s Service) GetUserCars(chatID int64) (domain.Cars, error) {
-	user, err := s.usersRepo.Get("chat_id", chatID)
+	user, err := s.usersRepo.Get(domain.FieldChatID, chatID)
 	if err != nil {
-		if errors.As(err, &repositories.InternalServerError{}) {
+		if errors.As(err, &errs.InternalError{}) {
 			s.log.Error(err.Error())
-			return domain.Cars{}, errs.InternalError{}
+			return domain.Cars{}, err
 		}
 		s.log.Debug(err.Error())
 
-		return domain.Cars{}, errs.NotFoundError{What: err.Error()}
+		return domain.Cars{}, err
 	}
 
 	return domain.Cars{Cars: user.Cars}, nil
