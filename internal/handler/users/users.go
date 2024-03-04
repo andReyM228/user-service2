@@ -32,7 +32,7 @@ func (h Handler) Get(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	user, err := h.userRepo.Get(domain.FieldID, id)
+	user, err := h.userService.GetUser(domain.FieldID, int64(id))
 	if err != nil {
 		return responder.HandleError(ctx, err)
 	}
@@ -51,7 +51,7 @@ func (h Handler) Update(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	if err := h.userRepo.Update(user); err != nil {
+	if err := h.userService.UpdateUser(user); err != nil {
 		return responder.HandleError(ctx, err)
 	}
 
@@ -77,7 +77,7 @@ func (h Handler) Delete(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	if err := h.userRepo.Delete(int64(id)); err != nil {
+	if err := h.userService.DeleteUser(int64(id)); err != nil {
 		return responder.HandleError(ctx, err)
 	}
 
@@ -109,9 +109,6 @@ func (h Handler) Login(ctx *fiber.Ctx) error {
 
 // -----------------------------------------------------------------------
 
-// TODO: проверка обработки ошибок
-
-// TODO: сделать норм сервисный уровень
 func (h Handler) BrokerCreate(request []byte) error {
 	var req rabbit.RequestModel
 	if err := json.Unmarshal(request, &req); err != nil {
@@ -164,7 +161,7 @@ func (h Handler) BrokerGetUserByID(request []byte) error {
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}
 
-	user, err := h.userRepo.Get(domain.FieldID, userRequest.ID)
+	user, err := h.userService.GetUser(domain.FieldID, userRequest.ID)
 	if err != nil {
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}

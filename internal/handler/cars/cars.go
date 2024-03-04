@@ -28,9 +28,6 @@ func NewHandler(carRepo repositories.Cars, carService services.CarTrading, rabbi
 	}
 }
 
-// TODO: обработка ошибок
-// TODO: сервисный уровень
-
 func (h Handler) Get(ctx *fiber.Ctx) error {
 	token, err := responder.GetToken(ctx)
 	if err != nil {
@@ -42,7 +39,10 @@ func (h Handler) Get(ctx *fiber.Ctx) error {
 	}
 
 	//TODO: сделать так везде
-	//auth.GetChatID(token)
+	//chatID, err := auth.GetChatID(token)
+	//if err != nil {
+	//	return err
+	//}
 
 	id, err := ctx.ParamsInt("id")
 	if err != nil {
@@ -121,7 +121,7 @@ func (h Handler) Update(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	if err := h.carRepo.Update(car); err != nil {
+	if err := h.carService.UpdateCar(car); err != nil {
 		return responder.HandleError(ctx, err)
 	}
 
@@ -134,7 +134,7 @@ func (h Handler) Create(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	if err := h.carRepo.Create(car); err != nil {
+	if err := h.carService.CreateCar(car); err != nil {
 		return responder.HandleError(ctx, err)
 	}
 
@@ -147,7 +147,7 @@ func (h Handler) Delete(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	if err := h.carRepo.Delete(int64(id)); err != nil {
+	if err := h.carService.DeleteCar(int64(id)); err != nil {
 		return responder.HandleError(ctx, err)
 	}
 
@@ -167,7 +167,7 @@ func (h Handler) BrokerGetCarByID(request []byte) error {
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}
 
-	car, err := h.carRepo.Get(carRequest.ID)
+	car, err := h.carService.GetCar(carRequest.ID)
 	if err != nil {
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}

@@ -175,3 +175,48 @@ func (s Service) GetUserCars(chatID int64) (domain.Cars, error) {
 
 	return domain.Cars{Cars: user.Cars}, nil
 }
+
+func (s Service) CreateCar(car domain.Car) error {
+	err := s.carsRepo.Create(car)
+	if err != nil {
+		if errors.As(err, &errs.InternalError{}) {
+			s.log.Error(err.Error())
+			return err
+		}
+		s.log.Debug(err.Error())
+
+		return err
+	}
+
+	return nil
+}
+
+func (s Service) UpdateCar(car domain.Car) error {
+	err := s.carsRepo.Update(car)
+	if err != nil {
+		if errors.As(err, &errs.InternalError{}) {
+			s.log.Error(err.Error())
+			return err
+		}
+		s.log.Debug(err.Error())
+
+		return err
+	}
+
+	return nil
+}
+
+func (s Service) DeleteCar(id int64) error {
+	err := s.carsRepo.Delete(id)
+	if err != nil {
+		if errors.As(err, &errs.InternalError{}) {
+			s.log.Error(err.Error())
+			return err
+		}
+		s.log.Debug(err.Error())
+
+		return err
+	}
+
+	return nil
+}

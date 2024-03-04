@@ -57,3 +57,36 @@ func (s Service) Registration(user domain.User) error {
 
 	return nil
 }
+
+func (s Service) GetUser(field string, id int64) (domain.User, error) {
+	user, err := s.usersRepo.Get(field, id)
+	if err != nil {
+		if errors.As(err, &repositories.NotFound{}) {
+			return domain.User{}, errs.NotFoundError{What: "user"}
+		}
+
+		s.log.Error(err.Error())
+
+		return domain.User{}, errs.InternalError{}
+	}
+
+	return user, nil
+}
+
+func (s Service) UpdateUser(user domain.User) error {
+	err := s.usersRepo.Update(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s Service) DeleteUser(id int64) error {
+	err := s.usersRepo.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
