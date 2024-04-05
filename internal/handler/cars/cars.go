@@ -88,16 +88,7 @@ func (h Handler) GetAll(ctx *fiber.Ctx) error {
 }
 
 func (h Handler) GetUserCars(ctx *fiber.Ctx) error {
-	token, err := responder.GetToken(ctx)
-	if err != nil {
-		return responder.HandleError(ctx, err)
-	}
-
-	if err := auth.VerifyToken(token); err != nil {
-		return responder.HandleError(ctx, errs.UnauthorizedError{Cause: err.Error()})
-	}
-
-	chatID, err := auth.GetChatID(token)
+	chatID, err := auth.GetChatIDFromHeader(ctx)
 	if err != nil {
 		return responder.HandleError(ctx, errs.UnauthorizedError{Cause: err.Error()})
 	}

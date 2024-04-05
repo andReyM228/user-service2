@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"github.com/andReyM228/lib/auth"
 	"github.com/andReyM228/lib/bus"
 	"github.com/andReyM228/lib/database"
 	"github.com/andReyM228/lib/rabbit"
@@ -57,6 +58,7 @@ func New(name string) App {
 }
 
 func (a *App) Run(fs embed.FS) {
+	a.initValidator()
 	a.populateConfig()
 	a.initLogger()
 	a.initDatabase(fs)
@@ -73,21 +75,21 @@ func (a *App) Run(fs embed.FS) {
 func (a *App) initHTTP() {
 	a.router = fiber.New()
 
-	a.router.Post("v1/user-services/buy-car/:chat_id/:car_id/:tx_hash", a.carTradingHandler.BuyCar)
-	a.router.Post("v1/user-services/sell-car/:chat_id/:car_id", a.carTradingHandler.SellCar)
+	a.router.Post("v1/user-service/buy-car/:chat_id/:car_id/:tx_hash", a.carTradingHandler.BuyCar)
+	a.router.Post("v1/user-service/sell-car/:chat_id/:car_id", a.carTradingHandler.SellCar)
 
-	a.router.Get("v1/user-services/user/:id", a.userHandler.Get)
-	a.router.Post("v1/user-services/user", a.userHandler.Create)
-	a.router.Post("v1/user-services/user/login", a.userHandler.Login)
-	a.router.Put("v1/user-services/user", a.userHandler.Update)
-	a.router.Delete("v1/user-services/user/:id", a.userHandler.Delete)
+	a.router.Get("v1/user-service/user/:id", a.userHandler.Get)
+	a.router.Post("v1/user-service/user", a.userHandler.Create)
+	a.router.Post("v1/user-service/user/login", a.userHandler.Login)
+	a.router.Put("v1/user-service/user", a.userHandler.Update)
+	a.router.Delete("v1/user-service/user/:id", a.userHandler.Delete)
 
-	a.router.Get("v1/user-services/car/:id", a.carHandler.Get)
-	a.router.Get("v1/user-services/cars/:label", a.carHandler.GetAll)
-	a.router.Get("v1/user-services/user-cars", a.carHandler.GetUserCars)
-	a.router.Post("v1/user-services/car", a.carHandler.Create)
-	a.router.Put("v1/user-services/car", a.carHandler.Update)
-	a.router.Delete("v1/user-services/car/:id", a.carHandler.Delete)
+	a.router.Get("v1/user-service/car/:id", a.carHandler.Get)
+	a.router.Get("v1/user-service/cars/:label", a.carHandler.GetAll)
+	a.router.Get("v1/user-service/user-cars", auth.AuthMiddleware(true), a.carHandler.GetUserCars)
+	a.router.Post("v1/user-service/car", a.carHandler.Create)
+	a.router.Put("v1/user-service/car", a.carHandler.Update)
+	a.router.Delete("v1/user-service/car/:id", a.carHandler.Delete)
 
 	a.logger.Debug("fiber api started")
 	_ = a.router.Listen(fmt.Sprintf(":%d", a.config.HTTP.Port))
@@ -163,6 +165,10 @@ func (a *App) populateConfig() {
 	}
 
 	a.config = cfg
+}
+
+func (a *App) initValidator() {
+	a.validator = validator.New()
 }
 
 func (a *App) initHTTPClient() {

@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.5
 
 require (
-	github.com/andReyM228/lib/auth v1.0.1
+	github.com/andReyM228/lib/auth v1.0.2
 	github.com/andReyM228/lib/bus v1.0.2
 	github.com/andReyM228/lib/database v1.0.1
 	github.com/andReyM228/lib/errs v1.0.5
@@ -14,6 +14,7 @@ require (
 	github.com/andReyM228/lib/responder v0.0.0-20230807185826-49977c79c61d
 	github.com/andReyM228/one/chain_client v1.0.7
 	github.com/cosmos/cosmos-sdk v0.47.3
+	github.com/go-playground/validator/v10 v10.11.1
 	github.com/gofiber/fiber/v2 v2.46.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
@@ -66,6 +67,8 @@ require (
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
+	github.com/go-playground/locales v0.14.0 // indirect
+	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -91,6 +94,7 @@ require (
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.7.16 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
