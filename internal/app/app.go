@@ -7,6 +7,7 @@ import (
 	"github.com/andReyM228/lib/auth"
 	"github.com/andReyM228/lib/bus"
 	"github.com/andReyM228/lib/database"
+	"github.com/andReyM228/lib/gpt3"
 	"github.com/andReyM228/lib/rabbit"
 	"github.com/andReyM228/one/chain_client"
 	"github.com/go-playground/validator/v10"
@@ -45,6 +46,7 @@ type App struct {
 	logger            log.Logger
 	db                *sqlx.DB
 	clientHTTP        *http.Client
+	chatGPT           gpt3.ChatGPT
 	rabbit            rabbit.Rabbit
 	chain             chain_client.Client
 
@@ -63,6 +65,7 @@ func (a *App) Run(fs embed.FS) {
 	a.initLogger()
 	a.initDatabase(fs)
 	a.initChainClient(context.Background())
+	a.initGPT()
 	a.initRabbit()
 	a.initHTTPClient()
 	a.initRepos()
@@ -75,8 +78,8 @@ func (a *App) Run(fs embed.FS) {
 func (a *App) initHTTP() {
 	a.router = fiber.New()
 
-	a.router.Post("v1/user-service/buy-car/:chat_id/:car_id/:tx_hash", a.carTradingHandler.BuyCar)
-	a.router.Post("v1/user-service/sell-car/:chat_id/:car_id", a.carTradingHandler.SellCar)
+	a.router.Post("v1/user-service/buy-car/:tx_hash/:car_id", auth.AuthMiddleware(true), a.carTradingHandler.BuyCar)
+	a.router.Post("v1/user-service/sell-car/:chat_id/:car_id", auth.AuthMiddleware(true), a.carTradingHandler.SellCar)
 
 	a.router.Get("v1/user-service/user/:id", a.userHandler.Get)
 	a.router.Post("v1/user-service/user", a.userHandler.Create)
@@ -84,10 +87,10 @@ func (a *App) initHTTP() {
 	a.router.Put("v1/user-service/user", a.userHandler.Update)
 	a.router.Delete("v1/user-service/user/:id", a.userHandler.Delete)
 
-	a.router.Get("v1/user-service/car/:id", a.carHandler.Get)
-	a.router.Get("v1/user-service/cars/:label", a.carHandler.GetAll)
+	a.router.Get("v1/user-service/car/:id", auth.AuthMiddleware(true), a.carHandler.Get)
+	a.router.Get("v1/user-service/cars/:label", auth.AuthMiddleware(true), a.carHandler.GetAll)
 	a.router.Get("v1/user-service/user-cars", auth.AuthMiddleware(true), a.carHandler.GetUserCars)
-	a.router.Post("v1/user-service/car", a.carHandler.Create)
+	a.router.Post("v1/user-service/car/create", a.carHandler.Create)
 	a.router.Put("v1/user-service/car", a.carHandler.Update)
 	a.router.Delete("v1/user-service/car/:id", a.carHandler.Delete)
 
@@ -119,6 +122,10 @@ func (a *App) listenRabbit() {
 
 }
 
+func (a *App) initGPT() {
+	a.chatGPT = gpt3.Init(a.config.ChatGPT.Key, a.config.ChatGPT.Model)
+}
+
 func (a *App) initChainClient(ctx context.Context) {
 	a.chain = chain_client.NewClient(a.config.Chain)
 }
@@ -147,7 +154,7 @@ func (a *App) initHandlers() {
 }
 
 func (a *App) initServices() {
-	a.carTradingService = car_trading.NewService(a.userRepo, a.carRepo, a.userCarsRepo, a.transferRepo, a.chain, a.config.Extra.CarSystemWallet, a.logger)
+	a.carTradingService = car_trading.NewService(a.userRepo, a.carRepo, a.userCarsRepo, a.transferRepo, a.chatGPT, a.chain, a.config.Extra.CarSystemWallet, a.logger)
 	a.userService = users_service.NewService(a.userRepo, a.logger)
 
 	a.logger.Debug("services created")

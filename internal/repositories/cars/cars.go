@@ -22,7 +22,7 @@ func NewRepository(database *sqlx.DB, log log.Logger) Repository {
 }
 
 func (r Repository) Get(id int64) (domain.Car, error) {
-	var car domain.Car
+	var car CarDB
 
 	if err := r.db.Get(&car, "SELECT * FROM cars WHERE id = $1", id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -34,11 +34,11 @@ func (r Repository) Get(id int64) (domain.Car, error) {
 		return domain.Car{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return car, nil
+	return car.toDomain(), nil
 }
 
 func (r Repository) GetAll(label string) (domain.Cars, error) {
-	var cars []domain.Car
+	var cars []CarDB
 
 	if err := r.db.Select(&cars, "SELECT * FROM cars WHERE name = $1", label); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -50,7 +50,7 @@ func (r Repository) GetAll(label string) (domain.Cars, error) {
 		return domain.Cars{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return domain.Cars{Cars: cars}, nil
+	return toDomainList(cars), nil
 }
 
 func (r Repository) Update(car domain.Car) error {
@@ -64,7 +64,7 @@ func (r Repository) Update(car domain.Car) error {
 }
 
 func (r Repository) Create(car domain.Car) error {
-	if _, err := r.db.Exec("INSERT INTO cars (name, model) VALUES ($1, $2)", car.Name, car.Model); err != nil {
+	if _, err := r.db.Exec("INSERT INTO cars (name, model, price, image, info) VALUES ($1, $2, $3, 4$, 5$)", car.Name, car.Model, car.Price, car.Image, car.Info); err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}

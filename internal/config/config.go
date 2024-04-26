@@ -11,15 +11,21 @@ import (
 
 type (
 	Config struct {
-		Chain  chain_client.ClientConfig `yaml:"chain"`
-		DB     database.DBConfig         `yaml:"db" validate:"required"`
-		HTTP   HTTP                      `yaml:"http" validate:"required"`
-		Rabbit Rabbit                    `yaml:"rabbit" validate:"required"`
-		Extra  Extra                     `yaml:"extra" validate:"required"`
+		Chain   chain_client.ClientConfig `yaml:"chain"`
+		DB      database.DBConfig         `yaml:"db" validate:"required"`
+		HTTP    HTTP                      `yaml:"http" validate:"required"`
+		ChatGPT ChatGPT                   `yaml:"chat-gpt" validate:"required"`
+		Rabbit  Rabbit                    `yaml:"rabbit" validate:"required"`
+		Extra   Extra                     `yaml:"extra" validate:"required"`
 	}
 
 	HTTP struct {
 		Port int `yaml:"port" validate:"required"`
+	}
+
+	ChatGPT struct {
+		Key   string `yaml:"key" validate:"required"`
+		Model string `yaml:"model" validate:"required"`
 	}
 
 	Rabbit struct {

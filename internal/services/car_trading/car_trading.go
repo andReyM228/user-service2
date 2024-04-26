@@ -3,7 +3,9 @@ package car_trading
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/andReyM228/lib/errs"
+	"github.com/andReyM228/lib/gpt3"
 	"github.com/andReyM228/lib/log"
 	"github.com/andReyM228/one/chain_client"
 	"user_service/internal/domain"
@@ -16,17 +18,19 @@ type Service struct {
 	userCarsRepo    repositories.UserCars
 	transfersRepo   repositories.Transfers
 	chain           chain_client.Client
+	chatGPT         gpt3.ChatGPT
 	carSystemWallet string
 	log             log.Logger
 }
 
-func NewService(usersRepo repositories.Users, carsRepo repositories.Cars, userCarsRepo repositories.UserCars, transfersRepo repositories.Transfers, chain chain_client.Client, carSystemWallet string, log log.Logger) Service {
+func NewService(usersRepo repositories.Users, carsRepo repositories.Cars, userCarsRepo repositories.UserCars, transfersRepo repositories.Transfers, chatGPT gpt3.ChatGPT, chain chain_client.Client, carSystemWallet string, log log.Logger) Service {
 	return Service{
 		usersRepo:       usersRepo,
 		carsRepo:        carsRepo,
 		userCarsRepo:    userCarsRepo,
 		transfersRepo:   transfersRepo,
 		chain:           chain,
+		chatGPT:         chatGPT,
 		carSystemWallet: carSystemWallet,
 		log:             log,
 	}
@@ -177,7 +181,20 @@ func (s Service) GetUserCars(chatID int64) (domain.Cars, error) {
 }
 
 func (s Service) CreateCar(car domain.Car) error {
-	err := s.carsRepo.Create(car)
+	carInfo, err := s.chatGPT.GetCompletion(fmt.Sprintf("расскажи мне об этой машине: %s + %s", car.Name, car.Model))
+	if err != nil {
+		if errors.As(err, &errs.InternalError{}) {
+			s.log.Error(err.Error())
+			return err
+		}
+		s.log.Debug(err.Error())
+
+		return err
+	}
+
+	car.Info = carInfo
+
+	err = s.carsRepo.Create(car)
 	if err != nil {
 		if errors.As(err, &errs.InternalError{}) {
 			s.log.Error(err.Error())

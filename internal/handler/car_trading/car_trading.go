@@ -1,6 +1,7 @@
 package car_trading
 
 import (
+	"github.com/andReyM228/lib/auth"
 	"github.com/andReyM228/lib/errs"
 	"github.com/andReyM228/lib/responder"
 	"github.com/gofiber/fiber/v2"
@@ -20,11 +21,6 @@ func NewHandler(carTrading services.CarTrading) Handler {
 // TODO: передавать chat_id не как параметр, а в jwt токене, или переделать на rabbit
 
 func (h Handler) BuyCar(ctx *fiber.Ctx) error {
-	chatID, err := ctx.ParamsInt("chat_id")
-	if err != nil {
-		return responder.HandleError(ctx, err)
-	}
-
 	carID, err := ctx.ParamsInt("car_id")
 	if err != nil {
 		return responder.HandleError(ctx, err)
@@ -35,7 +31,12 @@ func (h Handler) BuyCar(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, errs.BadRequestError{Cause: "empty tx_hash"})
 	}
 
-	if err := h.carTrading.BuyCar(ctx.Context(), int64(chatID), int64(carID), txHash); err != nil {
+	chatID, err := auth.GetChatIDFromHeader(ctx)
+	if err != nil {
+		return responder.HandleError(ctx, err)
+	}
+
+	if err := h.carTrading.BuyCar(ctx.Context(), chatID, int64(carID), txHash); err != nil {
 		return err
 	}
 

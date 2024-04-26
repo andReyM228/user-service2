@@ -36,6 +36,7 @@ type Car struct {
 	Model     string
 	Price     int64
 	Image     string
+	Info      string
 	CreatedAt time.Time `db:"created_at"`
 }
 
