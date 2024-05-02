@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
+	"user_service/internal/repositories/car_tx"
 
 	"user_service/internal/config"
 	car_trading_handler "user_service/internal/handler/car_trading"
@@ -41,6 +42,7 @@ type App struct {
 	userService       users_service.Service
 	userCarsRepo      user_cars.Repository
 	transferRepo      transfers.Repository
+	carTxRepo         car_tx.Repository
 	carTradingHandler car_trading_handler.Handler
 	validator         *validator.Validate
 	logger            log.Logger
@@ -143,6 +145,7 @@ func (a *App) initRepos() {
 	a.userRepo = users.NewRepository(a.db, a.logger)
 	a.carRepo = cars.NewRepository(a.db, a.logger)
 	a.transferRepo = transfers.NewRepository(a.rabbit, a.logger)
+	a.carTxRepo = car_tx.NewRepository(a.db, a.logger)
 	a.logger.Debug("repos created")
 }
 

@@ -54,3 +54,14 @@ type UserCar struct {
 type UserCars struct {
 	Cars []UserCar
 }
+
+type CarTx struct {
+	ID        int64
+	TxHash    string
+	Kind      string
+	CreatedAt time.Time `db:"created_at"`
+}
+
+type CarTxs struct {
+	Transactions []CarTx
+}
