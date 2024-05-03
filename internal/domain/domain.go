@@ -14,6 +14,14 @@ const (
 	FieldPassword  = "password"
 	FieldChatID    = "chat_id"
 	FieldCreatedAt = "created_at"
+
+	//	___________________________________________________
+
+	StatusNew    = "new"
+	StatusDone   = "done"
+	StatusFailed = "failed"
+	KindBuy      = "buy"
+	KindSell     = "sell"
 )
 
 type User struct {
@@ -56,10 +64,36 @@ type UserCars struct {
 }
 
 type CarTx struct {
-	ID        int64
-	TxHash    string
-	Kind      string
+	ID        int64     `db:"id"`
+	TxHash    string    `db:"tx_hash"`
+	Kind      Kind      `db:"kind"`
+	Status    Status    `db:"status"`
+	Error     string    `db:"error"`
 	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type Status string
+
+var Statuses = map[Status]struct{}{
+	StatusNew:    {},
+	StatusFailed: {},
+	StatusDone:   {},
+}
+
+func (s Status) String() string {
+	return string(s)
+}
+
+type Kind string
+
+var Kinds = map[Kind]struct{}{
+	KindBuy:  {},
+	KindSell: {},
+}
+
+func (k Kind) String() string {
+	return string(k)
 }
 
 type CarTxs struct {

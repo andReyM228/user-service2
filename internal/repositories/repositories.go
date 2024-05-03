@@ -1,6 +1,9 @@
 package repositories
 
-import "user_service/internal/domain"
+import (
+	"context"
+	"user_service/internal/domain"
+)
 
 type (
 	Cars interface {
@@ -27,5 +30,13 @@ type (
 		Create(userID, carID int) error
 		Delete(userID, carID int) error
 		GetUserCars(userID int64) (domain.UserCars, error)
+	}
+
+	CarTx interface {
+		Get(ctx context.Context, txHash string) (domain.CarTx, error)
+		GetAll(ctx context.Context, kind string) (domain.CarTxs, error)
+		Create(ctx context.Context, transaction domain.CarTx) error
+		Update(ctx context.Context, transaction domain.CarTx) error
+		Delete(ctx context.Context, id int64) error
 	}
 )
