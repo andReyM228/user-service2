@@ -17,18 +17,20 @@ type Service struct {
 	carsRepo        repositories.Cars
 	userCarsRepo    repositories.UserCars
 	transfersRepo   repositories.Transfers
+	txRepo          repositories.CarTx
 	chain           chain_client.Client
 	chatGPT         gpt3.ChatGPT
 	carSystemWallet string
 	log             log.Logger
 }
 
-func NewService(usersRepo repositories.Users, carsRepo repositories.Cars, userCarsRepo repositories.UserCars, transfersRepo repositories.Transfers, chatGPT gpt3.ChatGPT, chain chain_client.Client, carSystemWallet string, log log.Logger) Service {
+func NewService(usersRepo repositories.Users, carsRepo repositories.Cars, userCarsRepo repositories.UserCars, transfersRepo repositories.Transfers, txRepo repositories.CarTx, chatGPT gpt3.ChatGPT, chain chain_client.Client, carSystemWallet string, log log.Logger) Service {
 	return Service{
 		usersRepo:       usersRepo,
 		carsRepo:        carsRepo,
 		userCarsRepo:    userCarsRepo,
 		transfersRepo:   transfersRepo,
+		txRepo:          txRepo,
 		chain:           chain,
 		chatGPT:         chatGPT,
 		carSystemWallet: carSystemWallet,
@@ -39,6 +41,24 @@ func NewService(usersRepo repositories.Users, carsRepo repositories.Cars, userCa
 // TODO: проверить чтоб везде передавался ctx
 
 func (s Service) BuyCar(ctx context.Context, chatID, carID int64, txHash string) error {
+	txFromDB, err := s.txRepo.Create(ctx, domain.CarTx{
+		TxHash: txHash,
+		Kind:   domain.KindBuy,
+		Status: domain.StatusNew,
+	})
+	if err != nil {
+		s.log.Error(err.Error())
+		return err
+	}
+
+	defer func() {
+		err := s.txRepo.Update(ctx, txFromDB)
+		if err != nil {
+			s.log.Error(err.Error())
+			return
+		}
+	}()
+
 	user, err := s.usersRepo.Get(domain.FieldChatID, chatID)
 	if err != nil {
 		s.log.Error(err.Error())
@@ -59,26 +79,41 @@ func (s Service) BuyCar(ctx context.Context, chatID, carID int64, txHash string)
 	if tx.ToAddress != s.carSystemWallet {
 		err = errs.ForbiddenError{Cause: "invalid account_address_to"}
 		s.log.Error(err.Error())
+
+		txFromDB.SetStatusFailed(err)
+
 		return err
 	}
 
 	if user.AccountAddress != tx.FromAddress {
 		err = errs.BadRequestError{Cause: "wrong account address"}
 		s.log.Error(err.Error())
+
+		txFromDB.SetStatusFailed(err)
+
 		return err
 	}
 
 	if tx.Amount.AmountOf(chain_client.DenomOne).Int64() < car.Price {
 		err = errs.BadRequestError{Cause: "not enough transaction amount"}
 		s.log.Error(err.Error())
+
+		txFromDB.SetStatusFailed(err)
+
 		return err
 	}
 
 	if err := s.userCarsRepo.Create(user.ID, car.ID); err != nil {
 		s.log.Error(err.Error())
+
+		txFromDB.SetStatusFailed(err)
+
 		return err
 	}
+
 	s.log.Info("Car sent")
+
+	txFromDB.SetStatusDone()
 
 	return nil
 }

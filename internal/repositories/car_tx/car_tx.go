@@ -54,7 +54,7 @@ func (r Repository) GetAll(ctx context.Context, kind string) (domain.CarTxs, err
 	return toDomainList(transactions), nil
 }
 
-func (r Repository) Create(ctx context.Context, transaction domain.CarTx) error {
+func (r Repository) Create(ctx context.Context, transaction domain.CarTx) (domain.CarTx, error) {
 	query := `
 		INSERT INTO car_transactions (
 			tx_hash,
@@ -65,16 +65,29 @@ func (r Repository) Create(ctx context.Context, transaction domain.CarTx) error 
 		    :tx_hash,
 		    :status,
 		    :kind,
-		    :error,
-		)
+		    :error
+		) RETURNING 
+			id, tx_hash, status, kind, error, created_at, updated_at
 	`
 
-	_, err := r.db.NamedExecContext(ctx, query, fromDomain(transaction))
+	var carTxDB CarTxDB
+
+	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
-		return errs.InternalError{Cause: err.Error()}
+		return domain.CarTx{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return nil
+	err = stmt.GetContext(ctx, &carTxDB, fromDomain(transaction))
+	if err != nil {
+		return domain.CarTx{}, errs.InternalError{Cause: err.Error()}
+	}
+
+	//_, err = r.db.NamedExecContext(ctx, query, fromDomain(transaction))
+	//if err != nil {
+	//	return errs.InternalError{Cause: err.Error()}
+	//}
+
+	return carTxDB.toDomain(), nil
 }
 
 // TODO: сделать так во всех репах 3-х сервисов

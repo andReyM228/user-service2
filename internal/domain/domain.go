@@ -64,13 +64,13 @@ type UserCars struct {
 }
 
 type CarTx struct {
-	ID        int64     `db:"id"`
-	TxHash    string    `db:"tx_hash"`
-	Kind      Kind      `db:"kind"`
-	Status    Status    `db:"status"`
-	Error     string    `db:"error"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID        int64
+	TxHash    string
+	Kind      Kind
+	Status    Status
+	Error     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Status string
@@ -83,6 +83,15 @@ var Statuses = map[Status]struct{}{
 
 func (s Status) String() string {
 	return string(s)
+}
+
+func (c *CarTx) SetStatusFailed(err error) {
+	c.Error = err.Error()
+	c.Status = StatusFailed
+}
+
+func (c *CarTx) SetStatusDone() {
+	c.Status = StatusDone
 }
 
 type Kind string

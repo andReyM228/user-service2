@@ -157,7 +157,7 @@ func (a *App) initHandlers() {
 }
 
 func (a *App) initServices() {
-	a.carTradingService = car_trading.NewService(a.userRepo, a.carRepo, a.userCarsRepo, a.transferRepo, a.chatGPT, a.chain, a.config.Extra.CarSystemWallet, a.logger)
+	a.carTradingService = car_trading.NewService(a.userRepo, a.carRepo, a.userCarsRepo, a.transferRepo, a.carTxRepo, a.chatGPT, a.chain, a.config.Extra.CarSystemWallet, a.logger)
 	a.userService = users_service.NewService(a.userRepo, a.logger)
 
 	a.logger.Debug("services created")

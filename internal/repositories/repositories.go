@@ -35,7 +35,7 @@ type (
 	CarTx interface {
 		Get(ctx context.Context, txHash string) (domain.CarTx, error)
 		GetAll(ctx context.Context, kind string) (domain.CarTxs, error)
-		Create(ctx context.Context, transaction domain.CarTx) error
+		Create(ctx context.Context, transaction domain.CarTx) (domain.CarTx, error)
 		Update(ctx context.Context, transaction domain.CarTx) error
 		Delete(ctx context.Context, id int64) error
 	}

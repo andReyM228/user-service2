@@ -7,13 +7,13 @@ import (
 )
 
 type CarTxDB struct {
-	ID        int64
-	TxHash    string
-	Kind      string
-	Status    string
-	Error     sql.NullString
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID        int64          `db:"id"`
+	TxHash    string         `db:"tx_hash"`
+	Kind      string         `db:"kind"`
+	Status    string         `db:"status"`
+	Error     sql.NullString `db:"error"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
 }
 
 func fromDomain(carTx domain.CarTx) CarTxDB {
