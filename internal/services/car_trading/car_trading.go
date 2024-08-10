@@ -185,8 +185,8 @@ func (s Service) GetCar(id int64) (domain.Car, error) {
 	return car, nil
 }
 
-func (s Service) GetCars(label string) (domain.Cars, error) {
-	cars, err := s.carsRepo.GetAll(label)
+func (s Service) GetCars() (domain.Cars, error) {
+	cars, err := s.carsRepo.GetAll()
 	if err != nil {
 		if errors.As(err, &errs.InternalError{}) {
 			s.log.Error(err.Error())

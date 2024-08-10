@@ -27,7 +27,6 @@ import (
 	users_service "user_service/internal/services/users"
 
 	"github.com/andReyM228/lib/log"
-	_ "github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
 )
 

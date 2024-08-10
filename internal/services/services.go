@@ -17,7 +17,7 @@ type (
 	CarTrading interface {
 		BuyCar(ctx context.Context, chatID, carID int64, txHash string) error
 		GetCar(id int64) (domain.Car, error)
-		GetCars(label string) (domain.Cars, error)
+		GetCars() (domain.Cars, error)
 		GetUserCars(chatID int64) (domain.Cars, error)
 		SellCar(chatID, carID int64) error
 		CreateCar(car domain.Car) error

@@ -72,9 +72,7 @@ func (h Handler) GetAll(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, errs.UnauthorizedError{Cause: err.Error()})
 	}
 
-	label := ctx.Params("name", "bmw")
-
-	cars, err := h.carService.GetCars(label)
+	cars, err := h.carService.GetCars()
 	if err != nil {
 		return responder.HandleError(ctx, err)
 	}

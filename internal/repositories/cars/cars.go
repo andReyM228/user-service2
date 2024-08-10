@@ -37,10 +37,10 @@ func (r Repository) Get(id int64) (domain.Car, error) {
 	return car.toDomain(), nil
 }
 
-func (r Repository) GetAll(label string) (domain.Cars, error) {
+func (r Repository) GetAll() (domain.Cars, error) {
 	var cars []CarDB
 
-	if err := r.db.Select(&cars, "SELECT * FROM cars WHERE name = $1", label); err != nil {
+	if err := r.db.Select(&cars, "SELECT * FROM cars"); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			r.log.Info(err.Error())
 			return domain.Cars{}, errs.NotFoundError{What: "cars"}

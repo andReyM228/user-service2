@@ -8,7 +8,7 @@ import (
 type (
 	Cars interface {
 		Get(id int64) (domain.Car, error)
-		GetAll(label string) (domain.Cars, error)
+		GetAll() (domain.Cars, error)
 		Update(car domain.Car) error
 		Create(car domain.Car) error
 		Delete(id int64) error

@@ -121,6 +121,7 @@ func (h Handler) BrokerCreate(request []byte) error {
 	}
 
 	if err := h.userService.Registration(user); err != nil {
+		// TODO: обработка ошибок
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}
 
