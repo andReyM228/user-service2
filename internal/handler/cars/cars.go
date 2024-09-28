@@ -77,12 +77,7 @@ func (h Handler) GetAll(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	payload, err := json.Marshal(cars)
-	if err != nil {
-		return responder.HandleError(ctx, err)
-	}
-
-	return ctx.Send(payload)
+	return ctx.JSON(toResponseList(cars))
 }
 
 func (h Handler) GetUserCars(ctx *fiber.Ctx) error {
