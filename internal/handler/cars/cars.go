@@ -138,6 +138,7 @@ func (h Handler) Delete(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
+// TODO: improve file management
 //------------------------------------------------------------------
 
 func (h Handler) BrokerGetCarByID(request []byte) error {

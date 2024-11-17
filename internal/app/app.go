@@ -121,6 +121,11 @@ func (a *App) listenRabbit() {
 		return
 	}
 
+	err = a.rabbit.Consume(bus.SubjectUserServiceBuyCar, a.carTradingHandler.BrokerBuyCar)
+	if err != nil {
+		return
+	}
+
 }
 
 func (a *App) initGPT() {
@@ -151,7 +156,7 @@ func (a *App) initRepos() {
 func (a *App) initHandlers() {
 	a.userHandler = users_handler.NewHandler(a.userRepo, a.userService, a.rabbit)
 	a.carHandler = cars_handler.NewHandler(a.carRepo, a.carTradingService, a.rabbit)
-	a.carTradingHandler = car_trading_handler.NewHandler(a.carTradingService)
+	a.carTradingHandler = car_trading_handler.NewHandler(a.carTradingService, a.rabbit)
 	a.logger.Debug("handlers created")
 }
 
