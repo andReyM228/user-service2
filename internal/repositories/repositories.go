@@ -29,7 +29,6 @@ type (
 	UserCars interface {
 		Create(userID, carID int) error
 		Delete(userID, carID int) error
-		GetUserCars(userID int64) (domain.UserCars, error)
 	}
 
 	CarTx interface {

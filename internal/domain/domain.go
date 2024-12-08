@@ -48,9 +48,7 @@ type Car struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-type Cars struct {
-	Cars []Car
-}
+type Cars []Car
 
 type UserCar struct {
 	ID        int64

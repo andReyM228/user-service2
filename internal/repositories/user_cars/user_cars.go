@@ -1,13 +1,10 @@
 package user_cars
 
 import (
-	"database/sql"
-	"errors"
 	"github.com/andReyM228/lib/errs"
 
 	"github.com/andReyM228/lib/log"
 	"github.com/jmoiron/sqlx"
-	"user_service/internal/domain"
 )
 
 type Repository struct {
@@ -38,20 +35,4 @@ func (r Repository) Delete(userID, carID int) error {
 	}
 
 	return nil
-}
-
-func (r Repository) GetUserCars(userID int64) (domain.UserCars, error) {
-	var userCars []domain.UserCar
-
-	if err := r.db.Select(&userCars, "SELECT * FROM user_cars WHERE user_id = $1", userID); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			r.log.Info(err.Error())
-			return domain.UserCars{}, errs.NotFoundError{What: "user cars"}
-		}
-
-		r.log.Error(err.Error())
-		return domain.UserCars{}, errs.InternalError{Cause: err.Error()}
-	}
-
-	return domain.UserCars{Cars: userCars}, nil
 }

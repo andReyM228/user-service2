@@ -49,7 +49,5 @@ func toDomainList(carsDB []CarDB) domain.Cars {
 		result = append(result, car.toDomain())
 	}
 
-	return domain.Cars{
-		Cars: result,
-	}
+	return result
 }

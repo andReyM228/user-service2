@@ -86,3 +86,21 @@ func (h Handler) BrokerBuyCar(request []byte) error {
 
 	return h.rabbit.Reply(req.ReplyTopic, 200, nil)
 }
+
+func (h Handler) GetUserCars(request []byte) error {
+	var req rabbit.RequestModel
+	if err := json.Unmarshal(request, &req); err != nil {
+		return err
+	}
+
+	var buyCarRequest bus.BuyCarRequest
+	if err := json.Unmarshal(req.Payload, &buyCarRequest); err != nil {
+		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
+	}
+
+	if err := h.carTrading.BuyCar(context.Background(), buyCarRequest.ChatID, buyCarRequest.CarID, buyCarRequest.TxHash); err != nil {
+		return err
+	}
+
+	return h.rabbit.Reply(req.ReplyTopic, 200, nil)
+}

@@ -125,7 +125,6 @@ func (a *App) listenRabbit() {
 	if err != nil {
 		return
 	}
-
 }
 
 func (a *App) initGPT() {

@@ -212,7 +212,7 @@ func (s Service) GetUserCars(chatID int64) (domain.Cars, error) {
 		return domain.Cars{}, err
 	}
 
-	return domain.Cars{Cars: user.Cars}, nil
+	return user.Cars, nil
 }
 
 func (s Service) CreateCar(car domain.Car) error {

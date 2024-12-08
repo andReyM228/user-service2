@@ -30,7 +30,7 @@ func toResponse(car domain.Car) carResponse {
 func toResponseList(cars domain.Cars) []carResponse {
 	var result []carResponse
 
-	for _, car := range cars.Cars {
+	for _, car := range cars {
 		result = append(result, toResponse(car))
 	}
 
