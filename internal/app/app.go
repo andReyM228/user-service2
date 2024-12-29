@@ -12,6 +12,7 @@ import (
 	"github.com/andReyM228/one/chain_client"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 	"net/http"
 	"user_service/internal/repositories/car_tx"
 
@@ -27,7 +28,6 @@ import (
 	users_service "user_service/internal/services/users"
 
 	"github.com/andReyM228/lib/log"
-	"github.com/jmoiron/sqlx"
 )
 
 type App struct {
@@ -45,7 +45,7 @@ type App struct {
 	carTradingHandler car_trading_handler.Handler
 	validator         *validator.Validate
 	logger            log.Logger
-	db                *sqlx.DB
+	db                *gorm.DB
 	clientHTTP        *http.Client
 	chatGPT           gpt3.ChatGPT
 	rabbit            rabbit.Rabbit
