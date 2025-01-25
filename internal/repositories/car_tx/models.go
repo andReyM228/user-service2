@@ -3,7 +3,7 @@ package car_tx
 import (
 	"database/sql"
 	"time"
-	"user_service/internal/domain"
+	"user_service/internal/domain/car_txs"
 )
 
 type CarTxDB struct {
@@ -16,7 +16,7 @@ type CarTxDB struct {
 	UpdatedAt time.Time      `db:"updated_at"`
 }
 
-func fromDomain(carTx domain.CarTx) CarTxDB {
+func fromDomain(carTx car_txs.CarTx) CarTxDB {
 	return CarTxDB{
 		ID:     carTx.ID,
 		TxHash: carTx.TxHash,
@@ -31,26 +31,26 @@ func fromDomain(carTx domain.CarTx) CarTxDB {
 	}
 }
 
-func (c CarTxDB) toDomain() domain.CarTx {
-	return domain.CarTx{
+func (c CarTxDB) toDomain() car_txs.CarTx {
+	return car_txs.CarTx{
 		ID:        c.ID,
 		TxHash:    c.TxHash,
-		Kind:      domain.Kind(c.Kind),
-		Status:    domain.Status(c.Status),
+		Kind:      car_txs.Kind(c.Kind),
+		Status:    car_txs.Status(c.Status),
 		Error:     c.Error.String,
 		CreatedAt: c.CreatedAt,
 		UpdatedAt: c.UpdatedAt,
 	}
 }
 
-func toDomainList(carTxsDB []CarTxDB) domain.CarTxs {
-	result := make([]domain.CarTx, 0, len(carTxsDB))
+func toDomainList(carTxsDB []CarTxDB) car_txs.CarTxs {
+	result := make([]car_txs.CarTx, 0, len(carTxsDB))
 
 	for _, tx := range carTxsDB {
 		result = append(result, tx.toDomain())
 	}
 
-	return domain.CarTxs{
+	return car_txs.CarTxs{
 		Transactions: result,
 	}
 }

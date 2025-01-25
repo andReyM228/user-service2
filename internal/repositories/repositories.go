@@ -27,7 +27,7 @@ type (
 	}
 
 	UserCars interface {
-		Create(userID, carID int) error
+		Create(userCar domain.UserCar) error
 		Delete(userID, carID int) error
 	}
 

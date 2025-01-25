@@ -3,20 +3,23 @@ package cars
 import (
 	"database/sql"
 	"time"
-	"user_service/internal/domain"
+	"user_service/internal/domain/cars"
 )
 
 type CarDB struct {
-	ID        int
+	// TODO: int64
+	ID        int `gorm:"primaryKey"`
 	Name      string
 	Model     string
 	Price     int64
 	Image     string
 	Info      sql.NullString
-	CreatedAt time.Time `db:"created_at"`
+	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
-func fromDomain(car domain.Car) CarDB {
+type CarsDB []CarDB
+
+func fromDomain(car cars.Car) CarDB {
 	return CarDB{
 		ID:    car.ID,
 		Name:  car.Name,
@@ -30,8 +33,8 @@ func fromDomain(car domain.Car) CarDB {
 	}
 }
 
-func (c CarDB) toDomain() domain.Car {
-	return domain.Car{
+func (c CarDB) toDomain() cars.Car {
+	return cars.Car{
 		ID:        c.ID,
 		Name:      c.Name,
 		Model:     c.Model,
@@ -42,8 +45,8 @@ func (c CarDB) toDomain() domain.Car {
 	}
 }
 
-func toDomainList(carsDB []CarDB) domain.Cars {
-	result := make([]domain.Car, 0, len(carsDB))
+func toDomainList(carsDB []CarDB) cars.Cars {
+	result := make([]cars.Car, 0, len(carsDB))
 
 	for _, car := range carsDB {
 		result = append(result, car.toDomain())

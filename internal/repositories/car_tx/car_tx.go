@@ -2,109 +2,78 @@ package car_tx
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/andReyM228/lib/errs"
 	"github.com/andReyM228/lib/log"
-	"github.com/jmoiron/sqlx"
-	"user_service/internal/domain"
+	"gorm.io/gorm"
+	"user_service/internal/domain/car_txs"
+	"user_service/internal/repositories"
 )
 
+var _ repositories.CarTx = Repository{}
+
 type Repository struct {
-	db  *sqlx.DB
+	db  *gorm.DB
 	log log.Logger
 }
 
-func NewRepository(database *sqlx.DB, log log.Logger) Repository {
+func NewRepository(database *gorm.DB, log log.Logger) Repository {
 	return Repository{
 		db:  database,
 		log: log,
 	}
 }
 
-func (r Repository) Get(ctx context.Context, txHash string) (domain.CarTx, error) {
-	var transaction CarTxDB
+func (r Repository) Get(ctx context.Context, txHash string) (car_txs.CarTx, error) {
+	var transaction car_txs.CarTx
 
-	if err := r.db.Get(&transaction, "SELECT * FROM car_transactions WHERE tx_hash = $1", txHash); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	query := r.db.WithContext(ctx).Where("tx_hash = ?", txHash)
+
+	if err := query.First(&transaction).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.log.Info(err.Error())
-			return domain.CarTx{}, errs.NotFoundError{What: "car"}
+			return car_txs.CarTx{}, errs.NotFoundError{What: "car transaction"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.CarTx{}, errs.InternalError{Cause: err.Error()}
+		return car_txs.CarTx{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return transaction.toDomain(), nil
+	return transaction, nil
 }
 
-func (r Repository) GetAll(ctx context.Context, kind string) (domain.CarTxs, error) {
-	var transactions []CarTxDB
+func (r Repository) GetAll(ctx context.Context, kind string) (car_txs.CarTxs, error) {
+	var transactions car_txs.CarTxs
 
-	if err := r.db.Select(&transactions, "SELECT * FROM car_transactions WHERE kind = $1", kind); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	query := r.db.WithContext(ctx).Where("kind = ?", kind)
+
+	if err := query.Find(&transactions).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.log.Info(err.Error())
-			return domain.CarTxs{}, errs.NotFoundError{What: "cars"}
+			return car_txs.CarTxs{}, errs.NotFoundError{What: "car transactions"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.CarTxs{}, errs.InternalError{Cause: err.Error()}
+		return car_txs.CarTxs{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return toDomainList(transactions), nil
+	return transactions, nil
 }
 
-func (r Repository) Create(ctx context.Context, transaction domain.CarTx) (domain.CarTx, error) {
-	query := `
-		INSERT INTO car_transactions (
-			tx_hash,
-		    status,
-		    kind,
-		    error
-		) VALUES (
-		    :tx_hash,
-		    :status,
-		    :kind,
-		    :error
-		) RETURNING 
-			id, tx_hash, status, kind, error, created_at, updated_at
-	`
-
-	var carTxDB CarTxDB
-
-	stmt, err := r.db.PrepareNamedContext(ctx, query)
-	if err != nil {
-		return domain.CarTx{}, errs.InternalError{Cause: err.Error()}
+func (r Repository) Create(ctx context.Context, transaction car_txs.CarTx) (car_txs.CarTx, error) {
+	if err := r.db.WithContext(ctx).Create(&transaction).Error; err != nil {
+		r.log.Error(err.Error())
+		return car_txs.CarTx{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	err = stmt.GetContext(ctx, &carTxDB, fromDomain(transaction))
-	if err != nil {
-		return domain.CarTx{}, errs.InternalError{Cause: err.Error()}
-	}
-
-	//_, err = r.db.NamedExecContext(ctx, query, fromDomain(transaction))
-	//if err != nil {
-	//	return errs.InternalError{Cause: err.Error()}
-	//}
-
-	return carTxDB.toDomain(), nil
+	return transaction, nil
 }
 
-// TODO: сделать так во всех репах 3-х сервисов
+func (r Repository) Update(ctx context.Context, transaction car_txs.CarTx) error {
+	query := r.db.WithContext(ctx).Model(&car_txs.CarTx{}).Where("id = ?", transaction.ID)
 
-func (r Repository) Update(ctx context.Context, transaction domain.CarTx) error {
-	query := `
-		UPDATE car_transactions SET 
-			tx_hash = :tx_hash,
-		    status = :status,
-		    kind = :kind,
-		    error = :error
-		WHERE 
-			id = :id
-	`
-
-	_, err := r.db.NamedExecContext(ctx, query, fromDomain(transaction))
-	if err != nil {
+	if err := query.Updates(transaction).Error; err != nil {
+		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
 
@@ -112,8 +81,9 @@ func (r Repository) Update(ctx context.Context, transaction domain.CarTx) error 
 }
 
 func (r Repository) Delete(ctx context.Context, id int64) error {
-	_, err := r.db.Exec("DELETE FROM car_transactions WHERE id = $1", id)
-	if err != nil {
+	query := r.db.WithContext(ctx).Where("id = ?", id)
+
+	if err := query.Delete(&car_txs.CarTx{}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}

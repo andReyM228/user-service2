@@ -2,7 +2,7 @@ package cars
 
 import (
 	"time"
-	"user_service/internal/domain"
+	"user_service/internal/domain/cars"
 )
 
 type carResponse struct {
@@ -15,7 +15,7 @@ type carResponse struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func toResponse(car domain.Car) carResponse {
+func toResponse(car cars.Car) carResponse {
 	return carResponse{
 		ID:        car.ID,
 		Name:      car.Name,
@@ -27,7 +27,7 @@ func toResponse(car domain.Car) carResponse {
 	}
 }
 
-func toResponseList(cars domain.Cars) []carResponse {
+func toResponseList(cars cars.Cars) []carResponse {
 	var result []carResponse
 
 	for _, car := range cars {

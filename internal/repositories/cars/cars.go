@@ -1,61 +1,72 @@
 package cars
 
 import (
-	"database/sql"
 	"errors"
 	"github.com/andReyM228/lib/errs"
 	"github.com/andReyM228/lib/log"
-	"github.com/jmoiron/sqlx"
-	"user_service/internal/domain"
+	"gorm.io/gorm"
+	"user_service/internal/domain/cars"
+	"user_service/internal/repositories"
 )
 
+var _ repositories.Cars = Repository{}
+
 type Repository struct {
-	db  *sqlx.DB
+	db  *gorm.DB
 	log log.Logger
 }
 
-func NewRepository(database *sqlx.DB, log log.Logger) Repository {
+func NewRepository(database *gorm.DB, log log.Logger) Repository {
 	return Repository{
 		db:  database,
 		log: log,
 	}
 }
 
-func (r Repository) Get(id int64) (domain.Car, error) {
-	var car CarDB
+func (r Repository) Get(id int64) (cars.Car, error) {
+	var car cars.Car
 
-	if err := r.db.Get(&car, "SELECT * FROM cars WHERE id = $1", id); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	query := r.db.Where("id = ?", id)
+
+	if err := query.First(&car).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.log.Info(err.Error())
-			return domain.Car{}, errs.NotFoundError{What: "car"}
+			return cars.Car{}, errs.NotFoundError{What: "car"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.Car{}, errs.InternalError{Cause: err.Error()}
+		return cars.Car{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return car.toDomain(), nil
+	return car, nil
 }
 
-func (r Repository) GetAll() (domain.Cars, error) {
-	var cars []CarDB
+func (r Repository) GetAll() (cars.Cars, error) {
+	var cars cars.Cars
 
-	if err := r.db.Select(&cars, "SELECT * FROM cars"); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	if err := r.db.Find(&cars).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.log.Info(err.Error())
-			return domain.Cars{}, errs.NotFoundError{What: "cars"}
+			return nil, errs.NotFoundError{What: "cars"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.Cars{}, errs.InternalError{Cause: err.Error()}
+		return nil, errs.InternalError{Cause: err.Error()}
 	}
 
-	return toDomainList(cars), nil
+	return cars, nil
 }
 
-func (r Repository) Update(car domain.Car) error {
-	_, err := r.db.Exec("UPDATE cars SET name = $1, model = $2 WHERE id = $3", car.Name, car.Model, car.ID)
-	if err != nil {
+func (r Repository) Update(car cars.Car) error {
+	query := r.db.Model(&cars.Car{}).Where("id = ?", car.ID)
+
+	if err := query.Updates(cars.Car{
+		Name:  car.Name,
+		Model: car.Model,
+		Price: car.Price,
+		Image: car.Image,
+		Info:  car.Info,
+	}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
@@ -63,8 +74,8 @@ func (r Repository) Update(car domain.Car) error {
 	return nil
 }
 
-func (r Repository) Create(car domain.Car) error {
-	if _, err := r.db.Exec("INSERT INTO cars (name, model, price, image, info) VALUES ($1, $2, $3, 4$, 5$)", car.Name, car.Model, car.Price, car.Image, car.Info); err != nil {
+func (r Repository) Create(car cars.Car) error {
+	if err := r.db.Create(&car).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
@@ -73,8 +84,9 @@ func (r Repository) Create(car domain.Car) error {
 }
 
 func (r Repository) Delete(id int64) error {
-	_, err := r.db.Exec("DELETE FROM cars WHERE id = $1", id)
-	if err != nil {
+	query := r.db.Where("id = ?", id)
+
+	if err := query.Delete(&cars.Car{}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}

@@ -103,7 +103,12 @@ func (s Service) BuyCar(ctx context.Context, chatID, carID int64, txHash string)
 		return err
 	}
 
-	if err := s.userCarsRepo.Create(user.ID, car.ID); err != nil {
+	req := domain.UserCar{
+		UserID: int64(user.ID),
+		CarID:  int64(car.ID),
+	}
+
+	if err := s.userCarsRepo.Create(req); err != nil {
 		s.log.Error(err.Error())
 
 		txFromDB.SetStatusFailed(err)

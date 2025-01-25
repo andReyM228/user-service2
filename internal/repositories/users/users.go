@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"github.com/andReyM228/lib/errs"
 	"gorm.io/gorm"
+	"user_service/internal/domain/users"
+	"user_service/internal/repositories"
 
 	"github.com/andReyM228/lib/log"
-	"user_service/internal/domain"
 )
+
+// TODO: db models
+
+var _ repositories.Users = Repository{}
 
 type Repository struct {
 	db  *gorm.DB
@@ -22,43 +27,33 @@ func NewRepository(database *gorm.DB, log log.Logger) Repository {
 	}
 }
 
-func (r Repository) Get(field string, value any) (domain.User, error) {
-	var user domain.User
+func (r Repository) Get(field string, value any) (users.User, error) {
+	var user users.User
 
-	query := r.db.Where(fmt.Sprintf("%s = ?", field), value)
-
-	if err := query.First(&user).Error; err != nil {
+	// Получаем пользователя по заданному полю
+	if err := r.db.Where(fmt.Sprintf("%s = ?", field), value).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.log.Info(err.Error())
-			return domain.User{}, errs.NotFoundError{What: "user"}
+			return users.User{}, errs.NotFoundError{What: "user"}
 		}
 
 		r.log.Error(err.Error())
-		return domain.User{}, errs.InternalError{Cause: err.Error()}
+		return users.User{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	var cars []domain.Car
-	query = r.db.Where("user_id = ?", user.ID)
-
-	if err := query.Find(&cars).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			r.log.Info(err.Error())
-			return domain.User{}, errs.NotFoundError{What: "cars"}
-		}
-
+	// Загружаем связанные машины через промежуточную таблицу
+	if err := r.db.Model(&user).Association("Cars").Find(&user.Cars); err != nil {
 		r.log.Error(err.Error())
-		return domain.User{}, errs.InternalError{Cause: err.Error()}
+		return users.User{}, errs.InternalError{Cause: err.Error()}
 	}
-
-	user.Cars = cars
 
 	return user, nil
 }
 
-func (r Repository) Update(user domain.User) error {
-	query := r.db.Model(&domain.User{}).Where("id = ?", user.ID)
+func (r Repository) Update(user users.User) error {
+	query := r.db.Model(&users.User{}).Where("id = ?", user.ID)
 
-	if err := query.Updates(domain.User{
+	if err := query.Updates(users.User{
 		Name:           user.Name,
 		Surname:        user.Surname,
 		Phone:          user.Phone,
@@ -74,7 +69,7 @@ func (r Repository) Update(user domain.User) error {
 	return nil
 }
 
-func (r Repository) Create(user domain.User) error {
+func (r Repository) Create(user users.User) error {
 	if err := r.db.Create(&user).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
@@ -86,7 +81,7 @@ func (r Repository) Create(user domain.User) error {
 func (r Repository) Delete(id int64) error {
 	query := r.db.Where("id = ?", id)
 
-	if err := query.Delete(&domain.User{}).Error; err != nil {
+	if err := query.Delete(&users.User{}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
