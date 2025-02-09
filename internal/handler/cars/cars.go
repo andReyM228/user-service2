@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/andReyM228/lib/bus"
 	"github.com/andReyM228/lib/rabbit"
+	"user_service/internal/domain/cars"
 	"user_service/internal/repositories"
 	"user_service/internal/services"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/andReyM228/lib/errs"
 	"github.com/andReyM228/lib/responder"
 	"github.com/gofiber/fiber/v2"
-	"user_service/internal/domain"
 )
 
 type Handler struct {
@@ -100,7 +100,7 @@ func (h Handler) GetUserCars(ctx *fiber.Ctx) error {
 }
 
 func (h Handler) Update(ctx *fiber.Ctx) error {
-	var car domain.Car
+	var car cars.Car
 	if err := ctx.BodyParser(&car); err != nil {
 		return responder.HandleError(ctx, err)
 	}
@@ -113,7 +113,7 @@ func (h Handler) Update(ctx *fiber.Ctx) error {
 }
 
 func (h Handler) Create(ctx *fiber.Ctx) error {
-	var car domain.Car
+	var car cars.Car
 	if err := ctx.BodyParser(&car); err != nil {
 		return responder.HandleError(ctx, err)
 	}

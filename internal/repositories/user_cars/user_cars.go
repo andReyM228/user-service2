@@ -24,7 +24,7 @@ func NewRepository(database *gorm.DB, log log.Logger) Repository {
 }
 
 func (r Repository) Create(userCar user_cars.UserCar) error {
-	if err := r.db.Create(&userCar).Error; err != nil {
+	if err := r.db.Create(fromDomain(userCar)).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
@@ -35,7 +35,7 @@ func (r Repository) Create(userCar user_cars.UserCar) error {
 func (r Repository) Delete(userID, carID int) error {
 	query := r.db.Where("user_id = ? AND car_id = ?", userID, carID)
 
-	if err := query.Delete(&user_cars.UserCar{}).Error; err != nil {
+	if err := query.Delete(&userCarDB{}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}

@@ -25,7 +25,7 @@ func NewRepository(database *gorm.DB, log log.Logger) Repository {
 }
 
 func (r Repository) Get(ctx context.Context, txHash string) (car_txs.CarTx, error) {
-	var transaction car_txs.CarTx
+	var transaction carTxDB
 
 	query := r.db.WithContext(ctx).Where("tx_hash = ?", txHash)
 
@@ -39,11 +39,11 @@ func (r Repository) Get(ctx context.Context, txHash string) (car_txs.CarTx, erro
 		return car_txs.CarTx{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return transaction, nil
+	return transaction.toDomain(), nil
 }
 
 func (r Repository) GetAll(ctx context.Context, kind string) (car_txs.CarTxs, error) {
-	var transactions car_txs.CarTxs
+	var transactions []carTxDB
 
 	query := r.db.WithContext(ctx).Where("kind = ?", kind)
 
@@ -57,22 +57,23 @@ func (r Repository) GetAll(ctx context.Context, kind string) (car_txs.CarTxs, er
 		return car_txs.CarTxs{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return transactions, nil
+	return toDomainList(transactions), nil
 }
 
+// TODO: check it
 func (r Repository) Create(ctx context.Context, transaction car_txs.CarTx) (car_txs.CarTx, error) {
-	if err := r.db.WithContext(ctx).Create(&transaction).Error; err != nil {
+	transactionDB := fromDomain(transaction)
+	if err := r.db.WithContext(ctx).Create(&transactionDB).Error; err != nil {
 		r.log.Error(err.Error())
 		return car_txs.CarTx{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return transaction, nil
+	return transactionDB.toDomain(), nil
 }
 
 func (r Repository) Update(ctx context.Context, transaction car_txs.CarTx) error {
-	query := r.db.WithContext(ctx).Model(&car_txs.CarTx{}).Where("id = ?", transaction.ID)
-
-	if err := query.Updates(transaction).Error; err != nil {
+	query := r.db.WithContext(ctx).Model(&carTxDB{}).Where("id = ?", transaction.ID)
+	if err := query.Updates(fromDomain(transaction)).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
@@ -82,8 +83,7 @@ func (r Repository) Update(ctx context.Context, transaction car_txs.CarTx) error
 
 func (r Repository) Delete(ctx context.Context, id int64) error {
 	query := r.db.WithContext(ctx).Where("id = ?", id)
-
-	if err := query.Delete(&car_txs.CarTx{}).Error; err != nil {
+	if err := query.Delete(&carTxDB{}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}

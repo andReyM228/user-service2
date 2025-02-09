@@ -28,9 +28,7 @@ func NewRepository(database *gorm.DB, log log.Logger) Repository {
 }
 
 func (r Repository) Get(field string, value any) (users.User, error) {
-	var user users.User
-
-	// Получаем пользователя по заданному полю
+	var user userDB
 	if err := r.db.Where(fmt.Sprintf("%s = ?", field), value).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			r.log.Info(err.Error())
@@ -41,27 +39,17 @@ func (r Repository) Get(field string, value any) (users.User, error) {
 		return users.User{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	// Загружаем связанные машины через промежуточную таблицу
 	if err := r.db.Model(&user).Association("Cars").Find(&user.Cars); err != nil {
 		r.log.Error(err.Error())
 		return users.User{}, errs.InternalError{Cause: err.Error()}
 	}
 
-	return user, nil
+	return user.toDomain(), nil
 }
 
 func (r Repository) Update(user users.User) error {
-	query := r.db.Model(&users.User{}).Where("id = ?", user.ID)
-
-	if err := query.Updates(users.User{
-		Name:           user.Name,
-		Surname:        user.Surname,
-		Phone:          user.Phone,
-		Email:          user.Email,
-		Password:       user.Password,
-		ChatID:         user.ChatID,
-		AccountAddress: user.AccountAddress,
-	}).Error; err != nil {
+	query := r.db.Model(&userDB{}).Where("id = ?", user.ID)
+	if err := query.Updates(fromDomain(user)).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
@@ -70,7 +58,7 @@ func (r Repository) Update(user users.User) error {
 }
 
 func (r Repository) Create(user users.User) error {
-	if err := r.db.Create(&user).Error; err != nil {
+	if err := r.db.Create(fromDomain(user)).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}
@@ -80,8 +68,7 @@ func (r Repository) Create(user users.User) error {
 
 func (r Repository) Delete(id int64) error {
 	query := r.db.Where("id = ?", id)
-
-	if err := query.Delete(&users.User{}).Error; err != nil {
+	if err := query.Delete(&userDB{}).Error; err != nil {
 		r.log.Error(err.Error())
 		return errs.InternalError{Cause: err.Error()}
 	}

@@ -8,7 +8,10 @@ import (
 	"github.com/andReyM228/lib/gpt3"
 	"github.com/andReyM228/lib/log"
 	"github.com/andReyM228/one/chain_client"
-	"user_service/internal/domain"
+	"user_service/internal/domain/car_txs"
+	"user_service/internal/domain/cars"
+	"user_service/internal/domain/user_cars"
+	"user_service/internal/domain/users"
 	"user_service/internal/repositories"
 )
 
@@ -41,10 +44,10 @@ func NewService(usersRepo repositories.Users, carsRepo repositories.Cars, userCa
 // TODO: проверить чтоб везде передавался ctx
 
 func (s Service) BuyCar(ctx context.Context, chatID, carID int64, txHash string) error {
-	txFromDB, err := s.txRepo.Create(ctx, domain.CarTx{
+	txFromDB, err := s.txRepo.Create(ctx, car_txs.CarTx{
 		TxHash: txHash,
-		Kind:   domain.KindBuy,
-		Status: domain.StatusNew,
+		Kind:   car_txs.KindBuy,
+		Status: car_txs.StatusNew,
 	})
 	if err != nil {
 		s.log.Error(err.Error())
@@ -59,7 +62,7 @@ func (s Service) BuyCar(ctx context.Context, chatID, carID int64, txHash string)
 		}
 	}()
 
-	user, err := s.usersRepo.Get(domain.FieldChatID, chatID)
+	user, err := s.usersRepo.Get(users.FieldChatID, chatID)
 	if err != nil {
 		s.log.Error(err.Error())
 		return err
@@ -103,7 +106,7 @@ func (s Service) BuyCar(ctx context.Context, chatID, carID int64, txHash string)
 		return err
 	}
 
-	req := domain.UserCar{
+	req := user_cars.UserCar{
 		UserID: int64(user.ID),
 		CarID:  int64(car.ID),
 	}
@@ -175,52 +178,52 @@ func (s Service) SellCar(chatID, carID int64) error {
 	return nil
 }
 
-func (s Service) GetCar(id int64) (domain.Car, error) {
+func (s Service) GetCar(id int64) (cars.Car, error) {
 	car, err := s.carsRepo.Get(id)
 	if err != nil {
 		if errors.As(err, &repositories.InternalServerError{}) {
 			s.log.Error(err.Error())
-			return domain.Car{}, err
+			return cars.Car{}, err
 		}
 		s.log.Debug(err.Error())
 
-		return domain.Car{}, err
+		return cars.Car{}, err
 	}
 
 	return car, nil
 }
 
-func (s Service) GetCars() (domain.Cars, error) {
-	cars, err := s.carsRepo.GetAll()
+func (s Service) GetCars() (cars.Cars, error) {
+	carsFromDB, err := s.carsRepo.GetAll()
 	if err != nil {
 		if errors.As(err, &errs.InternalError{}) {
 			s.log.Error(err.Error())
-			return domain.Cars{}, err
+			return cars.Cars{}, err
 		}
 		s.log.Debug(err.Error())
 
-		return domain.Cars{}, err
+		return cars.Cars{}, err
 	}
 
-	return cars, nil
+	return carsFromDB, nil
 }
 
-func (s Service) GetUserCars(chatID int64) (domain.Cars, error) {
-	user, err := s.usersRepo.Get(domain.FieldChatID, chatID)
+func (s Service) GetUserCars(chatID int64) (cars.Cars, error) {
+	user, err := s.usersRepo.Get(users.FieldChatID, chatID)
 	if err != nil {
 		if errors.As(err, &errs.InternalError{}) {
 			s.log.Error(err.Error())
-			return domain.Cars{}, err
+			return cars.Cars{}, err
 		}
 		s.log.Debug(err.Error())
 
-		return domain.Cars{}, err
+		return cars.Cars{}, err
 	}
 
 	return user.Cars, nil
 }
 
-func (s Service) CreateCar(car domain.Car) error {
+func (s Service) CreateCar(car cars.Car) error {
 	carInfo, err := s.chatGPT.GetCompletion(fmt.Sprintf("расскажи мне об этой машине: %s + %s", car.Name, car.Model))
 	if err != nil {
 		if errors.As(err, &errs.InternalError{}) {
@@ -248,7 +251,7 @@ func (s Service) CreateCar(car domain.Car) error {
 	return nil
 }
 
-func (s Service) UpdateCar(car domain.Car) error {
+func (s Service) UpdateCar(car cars.Car) error {
 	err := s.carsRepo.Update(car)
 	if err != nil {
 		if errors.As(err, &errs.InternalError{}) {

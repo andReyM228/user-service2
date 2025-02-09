@@ -3,8 +3,8 @@ package users
 import (
 	"errors"
 	"github.com/andReyM228/lib/log"
-	"user_service/internal/domain"
 	"user_service/internal/domain/errs"
+	"user_service/internal/domain/users"
 	"user_service/internal/repositories"
 )
 
@@ -21,7 +21,7 @@ func NewService(usersRepo repositories.Users, log log.Logger) Service {
 }
 
 func (s Service) Login(chatID int64, password string) (int64, error) {
-	user, err := s.usersRepo.Get(domain.FieldChatID, chatID)
+	user, err := s.usersRepo.Get(users.FieldChatID, chatID)
 	if err != nil {
 		if errors.As(err, &repositories.NotFound{}) {
 			return 0, errs.NotFoundError{What: "user"}
@@ -39,13 +39,13 @@ func (s Service) Login(chatID int64, password string) (int64, error) {
 	return int64(user.ID), nil
 }
 
-func (s Service) Registration(user domain.User) error {
-	_, err := s.usersRepo.Get(domain.FieldChatID, user.ChatID)
+func (s Service) Registration(user users.User) error {
+	_, err := s.usersRepo.Get(users.FieldChatID, user.ChatID)
 	if err == nil {
 		return errors.New("this user already registered")
 	}
 
-	_, err = s.usersRepo.Get(domain.FieldPhone, user.Phone)
+	_, err = s.usersRepo.Get(users.FieldPhone, user.Phone)
 	if err == nil {
 		return errors.New("this phone number already taken")
 	}
@@ -58,22 +58,22 @@ func (s Service) Registration(user domain.User) error {
 	return nil
 }
 
-func (s Service) GetUser(field string, id int64) (domain.User, error) {
+func (s Service) GetUser(field string, id int64) (users.User, error) {
 	user, err := s.usersRepo.Get(field, id)
 	if err != nil {
 		if errors.As(err, &repositories.NotFound{}) {
-			return domain.User{}, errs.NotFoundError{What: "user"}
+			return users.User{}, errs.NotFoundError{What: "user"}
 		}
 
 		s.log.Error(err.Error())
 
-		return domain.User{}, errs.InternalError{}
+		return users.User{}, errs.InternalError{}
 	}
 
 	return user, nil
 }
 
-func (s Service) UpdateUser(user domain.User) error {
+func (s Service) UpdateUser(user users.User) error {
 	err := s.usersRepo.Update(user)
 	if err != nil {
 		return err

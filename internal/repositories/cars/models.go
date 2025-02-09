@@ -6,7 +6,9 @@ import (
 	"user_service/internal/domain/cars"
 )
 
-type CarDB struct {
+const tableName = "cars"
+
+type carDB struct {
 	// TODO: int64
 	ID        int `gorm:"primaryKey"`
 	Name      string
@@ -17,10 +19,10 @@ type CarDB struct {
 	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
-type CarsDB []CarDB
+type carsDB []carDB
 
-func fromDomain(car cars.Car) CarDB {
-	return CarDB{
+func fromDomain(car cars.Car) carDB {
+	return carDB{
 		ID:    car.ID,
 		Name:  car.Name,
 		Model: car.Model,
@@ -33,7 +35,7 @@ func fromDomain(car cars.Car) CarDB {
 	}
 }
 
-func (c CarDB) toDomain() cars.Car {
+func (c carDB) toDomain() cars.Car {
 	return cars.Car{
 		ID:        c.ID,
 		Name:      c.Name,
@@ -45,7 +47,7 @@ func (c CarDB) toDomain() cars.Car {
 	}
 }
 
-func toDomainList(carsDB []CarDB) cars.Cars {
+func toDomainList(carsDB []carDB) cars.Cars {
 	result := make([]cars.Car, 0, len(carsDB))
 
 	for _, car := range carsDB {
@@ -53,4 +55,8 @@ func toDomainList(carsDB []CarDB) cars.Cars {
 	}
 
 	return result
+}
+
+func (carDB) TableName() string {
+	return tableName
 }

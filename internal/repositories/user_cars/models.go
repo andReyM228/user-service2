@@ -5,7 +5,9 @@ import (
 	"user_service/internal/domain/user_cars"
 )
 
-type UserCarDB struct {
+const tableName = "user_cars"
+
+type userCarDB struct {
 	ID        int64
 	UserID    int64
 	CarID     int64
@@ -13,12 +15,12 @@ type UserCarDB struct {
 }
 
 type UserCarsDB struct {
-	Cars []UserCarDB
+	Cars []userCarDB
 }
 
 // TODO: подумать над entity
-func fromDomain(userCar user_cars.UserCar) UserCarDB {
-	return UserCarDB{
+func fromDomain(userCar user_cars.UserCar) userCarDB {
+	return userCarDB{
 		ID:        userCar.ID,
 		UserID:    userCar.UserID,
 		CarID:     userCar.CarID,
@@ -26,7 +28,7 @@ func fromDomain(userCar user_cars.UserCar) UserCarDB {
 	}
 }
 
-func (u UserCarDB) toDomain() user_cars.UserCar {
+func (u userCarDB) toDomain() user_cars.UserCar {
 	return user_cars.UserCar{
 		ID:        u.ID,
 		UserID:    u.UserID,
@@ -45,4 +47,8 @@ func toDomainList(userCarsDB UserCarsDB) user_cars.UserCars {
 	return user_cars.UserCars{
 		Cars: result,
 	}
+}
+
+func (userCarDB) TableName() string {
+	return tableName
 }

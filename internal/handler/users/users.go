@@ -6,8 +6,8 @@ import (
 	"github.com/andReyM228/lib/rabbit"
 	"github.com/andReyM228/lib/responder"
 	"github.com/gofiber/fiber/v2"
-	"user_service/internal/domain"
 	"user_service/internal/domain/errs"
+	"user_service/internal/domain/users"
 	"user_service/internal/repositories"
 	"user_service/internal/services"
 )
@@ -32,7 +32,7 @@ func (h Handler) Get(ctx *fiber.Ctx) error {
 		return responder.HandleError(ctx, err)
 	}
 
-	user, err := h.userService.GetUser(domain.FieldID, int64(id))
+	user, err := h.userService.GetUser(users.FieldID, int64(id))
 	if err != nil {
 		return responder.HandleError(ctx, err)
 	}
@@ -46,7 +46,7 @@ func (h Handler) Get(ctx *fiber.Ctx) error {
 }
 
 func (h Handler) Update(ctx *fiber.Ctx) error {
-	var user domain.User
+	var user users.User
 	if err := ctx.BodyParser(&user); err != nil {
 		return responder.HandleError(ctx, err)
 	}
@@ -59,7 +59,7 @@ func (h Handler) Update(ctx *fiber.Ctx) error {
 }
 
 func (h Handler) Create(ctx *fiber.Ctx) error {
-	var user domain.User
+	var user users.User
 	if err := ctx.BodyParser(&user); err != nil {
 		return responder.HandleError(ctx, err)
 	}
@@ -115,7 +115,7 @@ func (h Handler) BrokerCreate(request []byte) error {
 		return err
 	}
 
-	var user domain.User
+	var user users.User
 	if err := json.Unmarshal(req.Payload, &user); err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (h Handler) BrokerGetUserByID(request []byte) error {
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}
 
-	user, err := h.userService.GetUser(domain.FieldID, userRequest.ID)
+	user, err := h.userService.GetUser(users.FieldID, userRequest.ID)
 	if err != nil {
 		return h.rabbit.Reply(req.ReplyTopic, 500, nil)
 	}

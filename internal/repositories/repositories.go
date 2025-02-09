@@ -2,22 +2,25 @@ package repositories
 
 import (
 	"context"
-	"user_service/internal/domain"
+	"user_service/internal/domain/car_txs"
+	"user_service/internal/domain/cars"
+	"user_service/internal/domain/user_cars"
+	"user_service/internal/domain/users"
 )
 
 type (
 	Cars interface {
-		Get(id int64) (domain.Car, error)
-		GetAll() (domain.Cars, error)
-		Update(car domain.Car) error
-		Create(car domain.Car) error
+		Get(id int64) (cars.Car, error)
+		GetAll() (cars.Cars, error)
+		Update(car cars.Car) error
+		Create(car cars.Car) error
 		Delete(id int64) error
 	}
 
 	Users interface {
-		Get(field string, value any) (domain.User, error)
-		Update(user domain.User) error
-		Create(user domain.User) error
+		Get(field string, value any) (users.User, error)
+		Update(user users.User) error
+		Create(user users.User) error
 		Delete(id int64) error
 	}
 
@@ -27,15 +30,15 @@ type (
 	}
 
 	UserCars interface {
-		Create(userCar domain.UserCar) error
+		Create(userCar user_cars.UserCar) error
 		Delete(userID, carID int) error
 	}
 
 	CarTx interface {
-		Get(ctx context.Context, txHash string) (domain.CarTx, error)
-		GetAll(ctx context.Context, kind string) (domain.CarTxs, error)
-		Create(ctx context.Context, transaction domain.CarTx) (domain.CarTx, error)
-		Update(ctx context.Context, transaction domain.CarTx) error
+		Get(ctx context.Context, txHash string) (car_txs.CarTx, error)
+		GetAll(ctx context.Context, kind string) (car_txs.CarTxs, error)
+		Create(ctx context.Context, transaction car_txs.CarTx) (car_txs.CarTx, error)
+		Update(ctx context.Context, transaction car_txs.CarTx) error
 		Delete(ctx context.Context, id int64) error
 	}
 )
